@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electronic Tools Typing Quiz</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(-45deg, #283048, #859398, #4e73df, #1cc88a);
+    background-size: 400% 400%;
+    animation: gradientMove 20s ease infinite;
+    text-align:center;
+    padding:30px;
+    color:white;
+}
+
+#gameBox{
+    background:white;
+    color:#333;
+    width:90%;
+    max-width:750px;
+    margin:auto;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+input{
+    padding:12px;
+    width:80%;
+    max-width:400px;
+    font-size:16px;
+    margin:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    padding:10px 16px;
+    margin:6px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+
+
+#submitBtn{ background:#2196F3; color:white; }
+#hintBtn{ background:#9c27b0; color:white; }
+#nextBtn{ background:#4CAF50; color:white; display:none; }
+#restartBtn{ background:#ff9800; color:white; display:none; }
+
+.correct{ color:green; font-weight:bold; }
+.wrong{ color:red; font-weight:bold; }
+
+.translation{
+    margin-top:8px;
+    background:#f1f1f1;
+    padding:10px;
+    border-radius:8px;
+}
+
+#hintDisplay{
+    font-size:18px;
+    letter-spacing:3px;
+    margin-top:5px;
+}
+
+#score{ margin-top:10px; font-weight:bold; }
+
+#musicBtn{
+    font-weight:bold;
+    transition:0.3s;
+}
+
+.music-on{
+    background:#4CAF50;
+    color:white;
+}
+
+.music-off{
+    background:#e74a3b;
+    color:white;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Electronic Tools Typing Quiz</h1>
+
+<audio id="bgMusic" loop>
+    <source src="https://image2url.com/r2/default/audio/1770897167957-8435b616-4637-4b21-bbee-0d19339b2b41.mp3" type="audio/mpeg">
+</audio>
+
+
+<div id="gameBox">
+    <p id="progress"></p>
+    <p id="question"></p>
+    <div id="hintDisplay"></div>
+    <input type="text"
+       id="answerInput"
+       placeholder="Type your answer here"
+       enterkeyhint="done">
+    <br>
+    <button id="hintBtn" onclick="showHint()">Hint</button>
+    <button id="restartBtn" onclick="restartGame()">Restart</button>
+<button id="musicBtn" onclick="toggleMusic()">🔊 Music: ON</button>
+    <div id="result"></div>
+    <p id="score"></p>
+</div>
+
+<script>
+
+const questions = [
+{q:"Device used for making phone calls and accessing the internet.",a:"Smartphone",t:"โทรศัพท์มือถือ"},
+{q:"Device used to watch broadcast programs and videos.",a:"Television",t:"ทีวี"},
+{q:"Electronic device used to show time digitally.",a:"Digital Clock",t:"นาฬิกาดิจิทัล"},
+{q:"Machine used to print documents.",a:"Printer",t:"เครื่องปริ้น"},
+{q:"Appliance used to keep food cold and fresh.",a:"Refrigerator",t:"ตู้เย็น"},
+{q:"Portable personal computer.",a:"Notebook",t:"โน๊ตบุค"},
+{q:"Device that distributes internet signals.",a:"Router",t:"เร้าเตอร์"},
+{q:"Appliance used to heat food quickly.",a:"Microwave",t:"ไมโครเวฟ"},
+{q:"Machine used to cool indoor air.",a:"Air Conditioner",t:"เครื่องปรับอากาศ"},
+{q:"Device that moves air to create a breeze.",a:"Fan",t:"พัดลม"},
+{q:"Device used to produce heat.",a:"Heater",t:"ฮีทเตอร์"},
+{q:"Unmanned aerial vehicle controlled remotely.",a:"Drone",t:"โดรน"},
+{q:"Game controller used for playing video games.",a:"Joystick",t:"จอยสติก"},
+{q:"Technology that creates a virtual environment.",a:"VR",t:"VR"},
+{q:"Device used to record or amplify sound.",a:"Microphone",t:"ไมโครโฟน"},
+{q:"Device used to display images on a large screen.",a:"Projector",t:"โปรเจคเตอร์"},
+{q:"Device worn over ears to listen to audio.",a:"Headphones",t:"หูฟัง"},
+{q:"Machine used to wash clothes.",a:"Washing Machine",t:"เครื่องซักผ้า"},
+{q:"Appliance used to cook rice.",a:"Rice Cooker",t:"หม้อหุงข้าว"},
+{q:"Smart wearable device with multiple functions.",a:"Smartwatch",t:"สมาร์ทวอทช์"},
+{q:"Appliance used to cook food with hot air circulation.",a:"Air Fryer",t:"หม้ออบลมร้อน"},
+{q:"Screen used to display computer output.",a:"Monitor",t:"จอภาพ"},
+{q:"Device that outputs sound.",a:"Speaker",t:"ลำโพง"},
+{q:"Pointing device used to control a computer cursor.",a:"Mouse",t:"เมาส์"},
+{q:"Input device used to type on a computer.",a:"Keyboard",t:"คีย์บอร์ด"}
+];
+
+let shuffled=[];
+let current=0;
+let score=0;
+let isCooldown = false;
+let revealedIndexes = [];
+
+
+
+function shuffle(array){
+    return array.sort(()=>Math.random()-0.5);
+}
+
+function startGame(){
+    shuffled=shuffle([...questions]);
+    current=0;
+    score=0;
+    document.getElementById("score").innerText="";
+    document.getElementById("restartBtn").style.display="none";
+    showQuestion();
+}
+
+function updateHintDisplay(){
+    const answer = shuffled[current].a;
+    let display="";
+
+    for(let i=0;i<answer.length;i++){
+        if(answer[i]===" "){
+            display+="  ";
+        }
+        else if(revealedIndexes.includes(i)){
+            display+=answer[i]+" ";
+        }
+        else{
+            display+="_ ";
+        }
+    }
+
+    document.getElementById("hintDisplay").innerText = display;
+}
+
+function showHint(){
+    const answer = shuffled[current].a;
+
+    let hiddenIndexes = [];
+    for(let i=0;i<answer.length;i++){
+        if(answer[i] !== " " &&
+           !revealedIndexes.includes(i)){
+            hiddenIndexes.push(i);
+        }
+    }
+
+    if(hiddenIndexes.length > 0){
+        let randomIndex =
+            hiddenIndexes[Math.floor(Math.random()*hiddenIndexes.length)];
+
+        revealedIndexes.push(randomIndex);
+        updateHintDisplay();
+    }
+}
+
+function normalize(text){
+    return text.toLowerCase().replace(/\s+/g,'').trim();
+}
+
+function checkAnswer(){
+
+    if(isCooldown) return;
+
+    const user=normalize(document.getElementById("answerInput").value);
+    const correct=normalize(shuffled[current].a);
+    const item=shuffled[current];
+
+    isCooldown = true;
+
+    document.getElementById("answerInput").disabled = true;
+    document.getElementById("hintBtn").disabled = true;
+
+    let message="";
+    if(user===correct){
+        score++;
+        message="<span class='correct'>Correct!</span>";
+    }else{
+        message="<span class='wrong'>Wrong!</span>";
+    }
+
+    document.getElementById("result").innerHTML=
+        message+
+        "<div class='translation'><b>Answer:</b> "+item.a+
+        "<br><b>Thai:</b> "+item.t+"</div>";
+
+    document.getElementById("answerInput").value="";
+
+    setTimeout(()=>{
+        isCooldown = false;
+
+        document.getElementById("answerInput").disabled = false;
+        document.getElementById("hintBtn").disabled = false;
+
+        nextQuestion();
+
+    },1000); 
+}
+
+function nextQuestion(){
+    current++;
+    if(current<shuffled.length){
+        showQuestion();
+    }else{
+        document.getElementById("question").innerText="Quiz Completed!";
+        document.getElementById("hintDisplay").innerText="";
+        document.getElementById("answerInput").style.display="none";
+        document.getElementById("hintBtn").style.display="none";
+        document.getElementById("score").innerText=
+            "Final Score: "+score+" / 25";
+        document.getElementById("restartBtn").style.display="inline-block";
+    }
+}
+
+function restartGame(){
+    document.getElementById("answerInput").style.display="inline-block";
+    document.getElementById("hintBtn").style.display="inline-block";
+    startGame();
+}
+
+function showQuestion(){
+
+    document.getElementById("result").innerHTML="";
+    document.getElementById("answerInput").value="";
+
+    const answer = shuffled[current].a;
+
+   revealedIndexes = [];
+
+let words = answer.split(" ");
+let indexCounter = 0;
+
+for(let w of words){
+    revealedIndexes.push(indexCounter);
+    indexCounter += w.length + 1;
+}
+
+const extraReveal = Math.floor(Math.random()*3);
+
+let availableIndexes = [];
+
+for(let i = 0; i < answer.length; i++){
+    if(answer[i] !== " " &&
+       !revealedIndexes.includes(i)){
+        availableIndexes.push(i);
+    }
+}
+
+for(let i = 0; i < extraReveal && availableIndexes.length > 0; i++){
+    let randomPos = Math.floor(Math.random()*availableIndexes.length);
+    revealedIndexes.push(availableIndexes[randomPos]);
+    availableIndexes.splice(randomPos,1);
+}
+
+
+    document.getElementById("progress").innerText =
+        "Question "+(current+1)+" of "+shuffled.length;
+
+    document.getElementById("question").innerText =
+        shuffled[current].q;
+
+    updateHintDisplay();
+    document.getElementById("answerInput").focus();
+}
+
+const music = document.getElementById("bgMusic");
+const musicBtn = document.getElementById("musicBtn");
+
+let isPlaying = false;
+let fadeInterval = null;
+const MAX_VOLUME = 0.05;
+
+music.volume = 0;
+
+function fadeIn(duration = 1000){
+
+    if(isPlaying) return;
+
+    clearInterval(fadeInterval);
+
+    music.volume = 0;
+    music.play().catch(()=>{});
+    isPlaying = true;
+
+    let stepTime = 50;
+    let steps = duration / stepTime;
+    let step = MAX_VOLUME / steps;
+
+    fadeInterval = setInterval(() => {
+        if(music.volume < MAX_VOLUME){
+            music.volume = Math.min(music.volume + step, MAX_VOLUME);
+        } else {
+            clearInterval(fadeInterval);
+        }
+    }, stepTime);
+
+    musicBtn.innerHTML = "🔊 Music: ON";
+    musicBtn.className = "music-on";
+}
+
+function fadeOut(duration = 1000){
+
+    if(!isPlaying) return;
+
+    clearInterval(fadeInterval);
+
+    let stepTime = 50;
+    let steps = duration / stepTime;
+    let step = MAX_VOLUME / steps;
+
+    fadeInterval = setInterval(() => {
+        if(music.volume > 0){
+            music.volume = Math.max(music.volume - step, 0);
+        } else {
+            clearInterval(fadeInterval);
+            music.pause();
+            isPlaying = false;
+        }
+    }, stepTime);
+
+    musicBtn.innerHTML = "🔇 Music: OFF";
+    musicBtn.className = "music-off";
+}
+
+function toggleMusic(){
+    if(isPlaying){
+        fadeOut(800);
+    }else{
+        fadeIn(800);
+    }
+}
+
+document.addEventListener("click", startMusic, {once:true});
+document.addEventListener("touchstart", startMusic, {once:true});
+
+function startMusic(){
+    fadeIn(1200);
+}
+
+document.getElementById("answerInput")
+.addEventListener("keydown", function(e){
+
+    if(e.key === "Enter" && !isCooldown){
+        e.preventDefault();
+        checkAnswer();
+    }
+
+});
+
+
+window.onload = function(){
+    startGame();
+};
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
