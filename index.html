@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electronics Vocabulary Challenge</title>
+
+<style>
+body{
+  font-family:'Segoe UI',sans-serif;
+  text-align:center;
+  padding:20px;
+  min-height:100vh;
+  background:linear-gradient(-45deg,#0f2027,#1f2937,#111827,#0b1120);
+  background-size:400% 400%;
+  animation:gradientMove 18s ease infinite;
+  color:#e5e7eb;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent 60%);
+  pointer-events:none;
+}
+
+.top-header{
+  margin-bottom:30px;
+  display:none;
+}
+
+.top-header h1{
+  font-size:34px;
+  margin-bottom:8px;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa,#22d3ee);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.subtitle{
+  color:#9ca3af;
+  font-size:14px;
+  letter-spacing:1px;
+}
+
+#gameBox{
+  display:none;
+  background:rgba(31,41,55,0.85);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.08);
+  width:90%;
+  max-width:750px;
+  margin:auto;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+}
+
+.progress-bar{
+  width:100%;
+  height:8px;
+  background:#111827;
+  border-radius:10px;
+  margin-bottom:20px;
+  overflow:hidden;
+}
+
+#progressFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#22c55e,#3b82f6);
+  transition:width 0.4s ease;
+}
+
+input{
+  padding:14px;
+  width:80%;
+  max-width:400px;
+  font-size:16px;
+  margin:15px 0;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:#111827;
+  color:white;
+  transition:0.3s;
+}
+
+input:focus{
+  border:1px solid #60a5fa;
+  box-shadow:0 0 10px rgba(96,165,250,0.4);
+}
+
+input::placeholder{ color:#6b7280; }
+
+button{
+  padding:10px 18px;
+  margin:8px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:14px;
+  transition:0.3s;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,0,0,0.4);
+}
+
+#hintBtn{ background:#7c3aed; color:white; }
+#restartBtn{ background:#f59e0b; color:white; display:none; }
+.music-on{ background:#10b981; color:white; }
+.music-off{ background:#ef4444; color:white; }
+
+.correct{ color:#22c55e; font-weight:bold; }
+.wrong{ color:#ef4444; font-weight:bold; }
+
+.translation{
+  margin-top:15px;
+  background:#111827;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+#hintDisplay{
+  font-size:20px;
+  letter-spacing:4px;
+  margin-top:10px;
+  color:#60a5fa;
+}
+
+#score{
+  margin-top:15px;
+  font-weight:bold;
+  font-size:18px;
+  color:#facc15;
+}
+
+@keyframes gradientMove{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+#particles{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+
+@keyframes correctPop{
+  0%{ transform:scale(1); }
+  50%{ transform:scale(1.15); }
+  100%{ transform:scale(1); }
+}
+
+.correct-animate{
+  animation:correctPop 0.4s ease;
+  color:#22c55e;
+  text-shadow:0 0 10px rgba(34,197,94,0.7);
+}
+
+#musicBtn{
+  position:relative;
+  overflow:hidden;
+}
+
+#musicBtn::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,0.3),transparent);
+  transform:translateX(-100%);
+  transition:0.5s;
+}
+
+#musicBtn:hover::after{
+  transform:translateX(100%);
+}
+
+.music-on{
+  background:linear-gradient(135deg,#10b981,#22d3ee);
+  box-shadow:0 0 15px rgba(34,211,238,0.6);
+}
+
+.music-off{
+  background:linear-gradient(135deg,#ef4444,#b91c1c);
+}
+
+.timer-bar{
+  width:100%;
+  height:8px;
+  background:#111827;
+  border-radius:10px;
+  margin-top:10px;
+  overflow:hidden;
+}
+
+#timerFill{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,#22c55e,#facc15,#ef4444);
+  transition:none;
+}
+
+#timeText{
+  margin-top:6px;
+  font-size:14px;
+  color:#9ca3af;
+}
+
+@keyframes dangerFlash{
+  0%{opacity:1;}
+  50%{opacity:0.4;}
+  100%{opacity:1;}
+}
+
+.danger{
+  animation:dangerFlash 0.6s infinite;
+}
+
+#menuScreen{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  animation:fadeInMenu 1s ease;
+}
+
+.menu-title{
+  font-size:38px;
+  margin-bottom:10px;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa,#22d3ee);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.menu-sub{
+  color:#9ca3af;
+  margin-bottom:30px;
+}
+
+.menu-btn{
+  display:block;
+  width:220px;
+  margin:12px auto;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#3b82f6,#22d3ee);
+  color:white;
+  transition:0.3s;
+  box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.menu-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 15px 35px rgba(0,0,0,0.6);
+}
+
+.menu-btn.secondary{
+  background:linear-gradient(135deg,#f59e0b,#facc15);
+}
+
+@keyframes fadeInMenu{
+  from{opacity:0; transform:translate(-50%,-45%);}
+  to{opacity:1; transform:translate(-50%,-50%);}
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease;
+  pointer-events: none;
+}
+
+.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.6s cubic-bezier(.22,1,.36,1);
+ pointer-events: auto;
+}
+
+.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+
+<div id="menuScreen">
+  <h1 class="menu-title">Electronics Vocabulary Challenge</h1>
+  <p class="menu-sub">Ready to test your knowledge? ⚡</p>
+
+  <button id="startBtn" class="menu-btn">▶ Start Game</button>
+  <button id="bestBtn" class="menu-btn secondary">🏆 Best Score</button>
+</div>
+
+<div class="top-header">
+  <h1>Electronics Vocabulary Challenge</h1>
+  <p class="subtitle">Test your vocabulary knowledge ⚡</p>
+</div>
+
+<audio id="bgMusic" loop></audio>
+
+<audio id="warningSound"></audio>
+
+<div id="gameBox">
+  <p id="progress"></p>
+
+  <div class="progress-bar">
+    <div id="progressFill"></div>
+  </div>
+
+<div class="timer-bar">
+  <div id="timerFill"></div>
+</div>
+<p id="timeText"></p>
+
+  <p id="question"></p>
+  <div id="hintDisplay"></div>
+
+  <input type="text" id="answerInput" placeholder="Type your answer here">
+
+
+  <br>
+  <button id="hintBtn">Hint</button>
+  <button id="restartBtn">Restart</button>
+  <button id="musicBtn" class="music-off">🔇 Music: OFF</button>
+
+  <div id="result"></div>
+  <p id="score"></p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+const menuScreen = document.getElementById("menuScreen");
+const gameBox = document.getElementById("gameBox");
+
+document.getElementById("startBtn").addEventListener("click", ()=>{
+  menuScreen.style.display = "none";
+  gameBox.style.display = "block";
+document.querySelector(".top-header").style.display = "block";
+
+ gameStartTime = Date.now();
+
+ startGame();
+
+});
+
+document.getElementById("bestBtn").addEventListener("click", ()=>{
+  let best = parseInt(localStorage.getItem("bestScore")) || 0;
+  alert("🏆 Best Score: " + best);
+});
+
+const questions=[
+{q:"Device used for making phone calls and accessing the internet.",a:"Smartphone",t:"โทรศัพท์มือถือ"},
+{q:"Device used to watch broadcast programs and videos.",a:"Television",t:"โทรทัศน์"},
+{q:"Electronic device used to show time digitally.",a:"Digital Clock",t:"นาฬิกาดิจิทัล"},
+{q:"Machine used to print documents.",a:"Printer",t:"เครื่องปริ้น"},
+{q:"Appliance used to keep food cold and fresh.",a:"Fridge",t:"ตู้เย็น"},
+{q:"Portable personal computer.",a:"Notebook",t:"โน๊ตบุค"},
+{q:"Device that distributes internet signals.",a:"Router",t:"เร้าเตอร์"},
+{q:"Appliance used to heat food quickly.",a:"Microwave",t:"ไมโครเวฟ"},
+{q:"Machine used to cool indoor air.",a:"Air Conditioner",t:"เครื่องปรับอากาศ"},
+{q:"Device that moves air to create a breeze.",a:"Fan",t:"พัดลม"},
+{q:"Device used to produce heat.",a:"Heater",t:"ฮีทเตอร์"},
+{q:"Unmanned aerial vehicle controlled remotely.",a:"Drone",t:"โดรน"},
+{q:"Game controller used for playing video games.",a:"Joystick",t:"จอยสติก"},
+{q:"Technology that creates a virtual environment.",a:"VR",t:"วีอาร์"},
+{q:"Device used to record or amplify sound.",a:"Microphone",t:"ไมโครโฟน"},
+{q:"Device used to display images on a large screen.",a:"Projector",t:"โปรเจคเตอร์"},
+{q:"Device worn over ears to listen to audio.",a:"Headphones",t:"หูฟัง"},
+{q:"Machine used to wash clothes.",a:"Washing Machine",t:"เครื่องซักผ้า"},
+{q:"Appliance used to cook rice.",a:"Rice Cooker",t:"หม้อหุงข้าว"},
+{q:"Smart wearable device with multiple functions.",a:"Smartwatch",t:"สมาร์ทวอทช์"},
+{q:"Appliance used to cook food with hot air circulation.",a:"Air Fryer",t:"หม้ออบลมร้อน"},
+{q:"Screen used to display computer output.",a:"Monitor",t:"จอภาพ"},
+{q:"Device that outputs sound.",a:"Speaker",t:"ลำโพง"},
+{q:"Pointing device used to control a computer cursor.",a:"Mouse",t:"เมาส์"},
+{q:"Input device used to type on a computer.",a:"Keyboard",t:"คีย์บอร์ด"}
+];
+
+let shuffled=[],current=0,score=0,isCooldown=false,revealedIndexes=[];
+
+let hintUsed = 0;
+const maxHint = 3;
+let gameStartTime = 0;
+let totalGameTime = 0;
+let timerInterval = null;
+let questionStartTime = 0;
+const QUESTION_TIME = 25 * 1000;
+
+function startTimer(){
+  const timerBar = document.getElementById("timerFill");
+  questionStartTime = Date.now();
+
+  clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+
+    const elapsed = Date.now() - questionStartTime;
+    const remaining = Math.max(QUESTION_TIME - elapsed, 0);
+    const percent = (remaining / QUESTION_TIME) * 100;
+const hue = percent * 1.2; 
+timerBar.style.background = `hsl(${hue}, 90%, 55%)`;
+
+    timerBar.style.width = percent + "%";
+    document.getElementById("timeText").innerText =
+      "Time left: " + Math.ceil(remaining/1000) + "s";
+
+if(remaining <= 3000){
+  timerBar.classList.add("danger");
+
+  if(!timerBar.classList.contains("beeped")){
+    playWarningSound();
+    timerBar.classList.add("beeped");
+  }
+
+} else {
+  timerBar.classList.remove("danger");
+  timerBar.classList.remove("beeped");
+}
+
+    if(remaining <= 0){
+      clearInterval(timerInterval);
+      autoNext();
+    }
+
+  }, 16);
+}
+
+function autoNext(){
+  const input = document.getElementById("answerInput");
+  input.disabled = true;
+
+  document.getElementById("result").innerHTML =
+  "<span class='wrong'>Time's up!</span>" +
+  "<div class='translation'><b>Answer:</b> " + shuffled[current].a +
+  "<br><b>Thai:</b> " + shuffled[current].t + "</div>";
+
+  isCooldown = true;
+
+  setTimeout(()=>{
+    input.disabled = false;
+document.getElementById("timerFill").classList.remove("danger");
+    nextQuestion();
+  },1000);
+}
+
+const warningSound = document.getElementById("warningSound");
+warningSound.src = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+
+function shuffle(array){
+  for(let i = array.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+function normalize(t){return t.toLowerCase().replace(/\s+/g,'').trim();}
+
+function startGame(){
+  document.getElementById("gameBox").classList.remove("fade-out");
+
+  shuffled=shuffle([...questions]);
+  current=0;
+  score=0;
+
+  document.getElementById("score").innerText="";
+  document.getElementById("restartBtn").style.display="none";
+  document.getElementById("answerInput").disabled = false;
+
+  showQuestion();
+}
+
+function showQuestion(){
+
+  clearInterval(timerInterval);
+  isCooldown = false;
+
+  hintUsed = 0;
+  updateHintUI();
+  document.getElementById("hintBtn").disabled = false;
+
+  document.getElementById("result").innerHTML="";
+  document.getElementById("answerInput").value="";
+  document.getElementById("answerInput").disabled = false;
+
+  revealedIndexes = [];
+
+const answer = shuffled[current].a;
+let indexCounter = 0;
+
+let words = answer.split(" ");
+
+for (let i = 0; i < words.length; i++) {
+  revealedIndexes.push(indexCounter);
+  indexCounter += words[i].length;
+
+  if (i !== words.length - 1) {
+    indexCounter += 1; // ข้ามช่องว่าง
+  }
+}
+  
+  updateHintDisplay();
+
+  document.getElementById("progress").innerText =
+    "Question "+(current+1)+" of "+shuffled.length;
+
+  document.getElementById("question").innerText =
+    shuffled[current].q;
+
+  document.getElementById("progressFill").style.width =
+    ((current+1)/shuffled.length*100)+"%";
+
+  document.getElementById("timerFill").style.width = "100%";
+  document.getElementById("timerFill").classList.remove("danger","beeped");
+
+document.getElementById("timerFill").style.background =
+"linear-gradient(90deg,#22c55e,#facc15,#ef4444)";
+
+  startTimer();
+}
+
+function updateHintDisplay(){
+
+  const answer = shuffled[current].a;
+  let display = "";
+
+  for (let i = 0; i < answer.length; i++) {
+
+    if (answer[i] === " ") {
+      display += " ";
+    } 
+    else if (revealedIndexes.includes(i)) {
+      display += answer[i];
+    } 
+    else {
+      display += "_";
+    }
+
+  }
+
+  document.getElementById("hintDisplay").innerText = display;
+}
+
+function showHint(){
+
+  if(isCooldown) return;
+  if(hintUsed >= maxHint) return;
+
+  const answer = shuffled[current].a;
+
+  let hidden = [];
+
+  for(let i=0;i<answer.length;i++){
+    if(answer[i] !== " " && !revealedIndexes.includes(i)){
+      hidden.push(i);
+    }
+  }
+
+  if(hidden.length === 0) return;
+
+  let randomIndex = hidden[Math.floor(Math.random()*hidden.length)];
+  revealedIndexes.push(randomIndex);
+
+  hintUsed++;
+  updateHintUI();
+
+  if(hintUsed >= maxHint){
+    document.getElementById("hintBtn").disabled = true;
+  }
+
+  updateHintDisplay();
+}
+
+function checkAnswer(){
+
+clearInterval(timerInterval);
+
+if(isCooldown) return;
+
+const input=document.getElementById("answerInput");
+if(input.value.trim()==="") return;
+
+const user=normalize(input.value);
+const correct=normalize(shuffled[current].a);
+
+isCooldown=true;
+input.disabled=true;
+
+const isCorrect = user===correct;
+
+if(isCorrect) score++;
+
+if(isCorrect){
+  document.getElementById("timerFill").style.background =
+  "linear-gradient(90deg,#22c55e,#22c55e)";
+}
+
+document.getElementById("result").innerHTML =
+(isCorrect
+ ? "<span class='correct-animate'>Correct! 🎉</span>"
+ : "<span class='wrong'>Wrong!</span>")
++
+"<div class='translation'><b>Answer:</b> "+shuffled[current].a+
+"<br><b>Thai:</b> "+shuffled[current].t+"</div>";
+
+setTimeout(()=>{
+input.disabled=false;
+isCooldown=false;
+nextQuestion();
+},1000);
+}
+
+function nextQuestion(){
+  current++;
+
+  if(current < shuffled.length){
+    showQuestion();
+    document.getElementById("answerInput").focus();
+    return;
+  }
+
+ fadeOutMusic(1000);
+  clearInterval(timerInterval);
+
+document.getElementById("answerInput").disabled = true;
+
+  totalGameTime = Math.floor((Date.now() - gameStartTime)/1000);
+  let accuracy = Math.round((score / shuffled.length) * 100);
+
+  let grade = "";
+  if(accuracy >= 90) grade = "🏆 Master Level";
+  else if(accuracy >= 70) grade = "🔥 Advanced";
+  else if(accuracy >= 50) grade = "👍 Intermediate";
+  else grade = "💡 Keep Practicing";
+
+  let best = parseInt(localStorage.getItem("bestScore")) || 0;
+  if(score > best){
+    localStorage.setItem("bestScore", score);
+  }
+
+  const box = document.getElementById("gameBox");
+  box.classList.add("fade-out");
+
+  setTimeout(() => {
+
+ box.classList.remove("fade-out");
+
+    box.innerHTML = `
+      <div id="summaryBox" class="hidden">
+        <h2 style="font-size:28px; margin-bottom:20px;">🎉 Game Summary</h2>
+
+        <div style="
+          background:#111827;
+          padding:25px;
+          border-radius:18px;
+          border:1px solid rgba(255,255,255,0.1);
+          box-shadow:0 15px 40px rgba(0,0,0,0.6);
+        ">
+
+          <p style="font-size:20px;">🏆 Score: <b>${score} / ${shuffled.length}</b></p>
+          <p>🎯 Accuracy: <b>${accuracy}%</b></p>
+          <p>⏱ Total Time: <b>${totalGameTime}s</b></p>
+
+          <p style="margin-top:15px; font-size:18px; color:#22c55e;">
+            ${grade}
+          </p>
+
+          <button id="playAgainBtn"
+            style="
+              margin-top:25px;
+              padding:12px 24px;
+              border:none;
+              border-radius:12px;
+              background:linear-gradient(135deg,#3b82f6,#22d3ee);
+              color:white;
+              font-size:16px;
+              cursor:pointer;
+            ">
+            🔄 Play Again
+          </button>
+
+        </div>
+      </div>
+    `;
+
+    const summary = document.getElementById("summaryBox");
+
+    setTimeout(()=>{
+      summary.classList.remove("hidden");
+      summary.classList.add("fade-in");
+    },50);
+
+    document.getElementById("playAgainBtn").addEventListener("click", ()=>{
+      location.reload();
+    });
+
+  },500);
+}
+
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particlesArray = [];
+
+class Particle{
+  constructor(){
+    this.x = Math.random()*canvas.width;
+    this.y = Math.random()*canvas.height;
+    this.size = Math.random()*2;
+    this.speedX = (Math.random()-0.5)*0.3;
+    this.speedY = (Math.random()-0.5)*0.3;
+  }
+
+  update(){
+    this.x += this.speedX;
+    this.y += this.speedY;
+
+    if(this.x<0||this.x>canvas.width) this.speedX*=-1;
+    if(this.y<0||this.y>canvas.height) this.speedY*=-1;
+  }
+
+  draw(){
+    ctx.fillStyle="rgba(96,165,250,0.25)";
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function initParticles(){
+  particlesArray=[];
+  for(let i=0;i<60;i++){
+    particlesArray.push(new Particle());
+  }
+}
+
+function animateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particlesArray.forEach(p=>{
+    p.update();
+    p.draw();
+  });
+  requestAnimationFrame(animateParticles);
+}
+
+function playWarningSound(){
+  warningSound.currentTime = 0;
+  warningSound.volume = 0.2;
+  warningSound.play();
+}
+
+initParticles();
+animateParticles();
+
+window.addEventListener("resize",()=>{
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  initParticles();
+});
+
+const music = document.getElementById("bgMusic");
+const musicBtn = document.getElementById("musicBtn");
+
+music.src = "https://image2url.com/r2/default/audio/1770897167957-8435b616-4637-4b21-bbee-0d19339b2b41.mp3";
+music.loop = true;
+music.volume = 0;
+
+const MAX_VOLUME = 0.05;
+const FADE_SPEED = 50;
+
+let fadeInterval = null;
+let isPlaying = false;
+
+function fadeIn(duration = 800){
+  clearInterval(fadeInterval);
+  music.play().catch(()=>{});
+  isPlaying = true;
+
+  let step = MAX_VOLUME/(duration/FADE_SPEED);
+
+  fadeInterval = setInterval(()=>{
+    if(music.volume < MAX_VOLUME)
+      music.volume = Math.min(music.volume + step, MAX_VOLUME);
+    else
+      clearInterval(fadeInterval);
+  }, FADE_SPEED);
+
+  musicBtn.className="music-on";
+  musicBtn.innerHTML="🔊 Music: ON";
+}
+
+function fadeOutMusic(duration = 800){
+  clearInterval(fadeInterval);
+
+  let step = MAX_VOLUME/(duration/FADE_SPEED);
+
+  fadeInterval = setInterval(()=>{
+    if(music.volume > 0)
+      music.volume = Math.max(music.volume - step, 0);
+    else{
+      clearInterval(fadeInterval);
+      music.pause();
+      isPlaying = false;
+    }
+  }, FADE_SPEED);
+
+  musicBtn.className="music-off";
+  musicBtn.innerHTML="🔇 Music: OFF";
+}
+
+function toggleMusic(){
+  isPlaying ? fadeOutMusic() : fadeIn();
+}
+
+function updateHintUI(){
+  const left = maxHint - hintUsed;
+  document.getElementById("hintBtn").textContent =
+    `Hint (${left} left)`;
+}
+
+musicBtn.addEventListener("click", toggleMusic);
+document.getElementById("hintBtn").addEventListener("click", showHint);
+
+
+document.addEventListener("click", function autoStart(e){
+  if(e.target.id !== "musicBtn"){
+    fadeIn(1200);
+    document.removeEventListener("click", autoStart);
+  }
+});
+
+document.getElementById("answerInput")
+  .addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      checkAnswer();
+    }
+});
+
+});
+
+</script>
+
+</body>
+</html>
